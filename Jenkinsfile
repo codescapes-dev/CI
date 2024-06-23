@@ -54,8 +54,8 @@ pipeline {
                 script {
                     sh "git prune"
                     sh "git fetch"
-                    // echo "Searching and Closing All Pull Manual PRs opened on Target Branch"
-                    // sh "gh pr list -s all --base main | awk "{print $1}" d | xargs -I{} gh pr close {}"
+                    echo "Searching and Closing All Pull Manual PRs opened on Target Branch"
+                    sh "gh pr list -s all --base main | awk "{print $1}" d | xargs -I{} gh pr close {}"
                     sh "gh pr create --fill --base main"
                     sleep time: 5, unit: 'SECONDS'
                     sh "gh pr merge --merge --auto"
@@ -77,6 +77,7 @@ pipeline {
                         }
                     } catch (Exception e) {
                         echo "Error creating latest release tag: ${e.message}"
+                        currentBuild.result = 'FAILURE'
                     }
                 }
             }
@@ -85,7 +86,6 @@ pipeline {
 }
 
 def bumpVersion(tag) {
-    // Example: If tag is "Release-V1.1.25", extract the numeric parts and increment the version
     def matcher = tag =~ /(\d+)\.(\d+)\.(\d+)$/
     if (!matcher) {
         return tag // Return the original tag if no numeric parts are found
