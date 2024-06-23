@@ -25,6 +25,8 @@ pipeline {
                 script {
                     sh "git prune"
                     sh "git fetch"
+                    echo "Searching and Closing All Pull Manual PRs opened on Target Branch"
+                    sh "gh pr list -s all --base main | awk '{print $1}' | xargs -I{} gh pr close {}"
                     sh "gh pr create --fill --base main"
                     sleep time: 5, unit: 'SECONDS'
                     sh "gh pr merge --merge --auto"
@@ -41,10 +43,29 @@ pipeline {
                         OLD_TAG = json.tagName ?: DEFAULT_VERSION
                         NEW_TAG = bumpVersion(OLD_TAG)
                     } catch (Exception e) {
-                        echo "Error fetching latest release tag: ${e.message}"
+                        echo "No Prior Releases Found, Creating Default Release"
                         NEW_TAG = DEFAULT_VERSION
                     } finally {
                         echo "Latest Release Tag Is: ${NEW_TAG}"
+                    }
+                }
+            }
+        }
+
+        stage('Create GH Release') {
+            steps {
+                script {
+                    try {
+                        echo "New: ${NEW_TAG}"
+                        if (NEW_TAG == 'Release-V1.0.0') {
+                            echo "If Case"
+                            sh "gh release create ${NEW_TAG} --latest=true --generate-notes --target main"
+                        } else {
+                            echo "Else Case"
+                            sh "gh release create ${NEW_TAG} --target main --notes-start-tag ${OLD_TAG} --generate-notes"
+                        }
+                    } catch (Exception e) {
+                        echo "Error creating latest release tag: ${e.message}"
                     }
                 }
             }
