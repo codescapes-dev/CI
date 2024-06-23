@@ -25,10 +25,13 @@ pipeline {
                 script {
                     def new_version = "2.0.0"
                     sh "sed -i 's/\"version\": \".*\"/\"version\": \"${new_version}\"/' package.json"
-                    sh "git config user.email atharva@atharvaunde.dev"
-                    sh "git config user.name Git Action"
+                    sh "git config --local user.email 'atharva@atharvaunde.dev'"
+                    sh "git config --local user.name 'Git Action'"
+                    sh 'echo "Git configuration:"'
+                    sh 'git config --list'
                     sh "git add package.json"
                     sh "git commit -m 'Version Bump to ${new_version}'"
+                    sh 'git log -1 --pretty=format:"%an <%ae>"'
                     sh "git push origin development -u"
                 }
             }
