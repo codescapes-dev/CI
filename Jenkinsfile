@@ -24,9 +24,6 @@ pipeline {
             steps {
                 script {
                     try {
-                        def commitMessage = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
-
-                        echo "Commit ${commitMessage}"
                         def latestTagOutput = sh(script: 'gh release view --json tagName', returnStdout: true).trim()
                         def json = readJSON text: latestTagOutput
                         OLD_TAG = json.tagName ?: DEFAULT_VERSION
@@ -88,9 +85,38 @@ pipeline {
 }
 
 def bumpVersion(tag) {
-    // Example: If tag is "Release-V1.1.48", extract the numeric part and increment it
-    def matcher = tag =~ /(\d+)$/
-    def versionNumber = matcher ? Integer.parseInt(matcher[0][1]) : 0
-    def newVersion = tag.replaceFirst(/\d+$/, "${versionNumber + 1}")
-    return newVersion
+    // Compile the regex pattern with case-insensitive flag
+    def pattern = java.util.regex.Pattern.compile(/[_-]?RC\d*/, java.util.regex.Pattern.CASE_INSENSITIVE)
+    
+    // Remove any "_RC", "-RC", "RC", etc. part regardless of case
+    def cleanedTag = tag.replaceAll(pattern, "")
+    
+    // Extract the version numbers (major, minor, patch)
+    def matcher = cleanedTag =~ /(\d+)\.(\d+)\.(\d+)$/
+    if (!matcher) {
+        return tag // Return the original tag if no numeric parts are found
+    }
+    
+    def major = matcher[0][1].toInteger()
+    def minor = matcher[0][2].toInteger()
+    def patch = matcher[0][3].toInteger()
+    
+    // Increment the patch number
+    patch += 1
+    if (patch > 25) {
+        patch = 0
+        minor += 1
+    }
+    
+    // If minor number exceeds 25, reset it and increment major number
+    if (minor > 25) {
+        minor = 0
+        major += 1
+    }
+    
+    // Construct the new version string
+    def newVersion = "${major}.${minor}.${patch}"
+    def newTag = cleanedTag.replaceFirst(/(\d+)\.(\d+)\.(\d+)$/, newVersion)
+    
+    return newTag
 }
