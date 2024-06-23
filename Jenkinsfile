@@ -24,7 +24,9 @@ pipeline {
             steps {
                 script {
                     def new_version = "2.0.0"
-                    sh "sed -i 's/\"version\": \".*\"/\"version\": \"${new_version}\"/' package.json"
+                    // sh "sed -i 's/\"version\": \".*\"/\"version\": \"${new_version}\"/' package.json"
+                    sh "ls"
+                    sh "pwd"
                     sh "git config user.email atharva@atharvaunde.dev"
                     sh "git config user.name Git Action"
                 }
