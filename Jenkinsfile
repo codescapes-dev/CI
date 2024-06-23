@@ -26,7 +26,7 @@ pipeline {
                     sh "git prune"
                     sh "git fetch"
                     echo "Searching and Closing All Pull Manual PRs opened on Target Branch"
-                    sh "gh pr list -s all --base main | awk '{print $1}' | xargs -I{} gh pr close {}"
+                    sh "gh pr list -s all --base main | awk "{print $1}" d | xargs -I{} gh pr close {}"
                     sh "gh pr create --fill --base main"
                     sleep time: 5, unit: 'SECONDS'
                     sh "gh pr merge --merge --auto"
