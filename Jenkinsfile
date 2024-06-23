@@ -24,6 +24,9 @@ pipeline {
             steps {
                 script {
                     try {
+                        def commitMessage = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
+
+                        echo "Commit ${commitMessage}"
                         def latestTagOutput = sh(script: 'gh release view --json tagName', returnStdout: true).trim()
                         def json = readJSON text: latestTagOutput
                         OLD_TAG = json.tagName ?: DEFAULT_VERSION
@@ -42,8 +45,6 @@ pipeline {
             steps {
                 script {
                     sh "sed -i 's/\"version\": \".*\"/\"version\": \"${NEW_TAG}\"/' package.json"
-                    sh 'echo "Git configuration:"'
-                    sh 'git config --list'
                     sh "git add package.json"
                     sh "git commit -m 'Version Bump to ${NEW_TAG}'"
                     sh "git push origin development -u"
