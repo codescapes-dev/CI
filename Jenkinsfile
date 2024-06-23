@@ -24,6 +24,8 @@ pipeline {
             steps {
                 script {
                     def new_version = "2.0.0"
+                    sh 'cat package.json'
+                    sh 'cat ./package.json'
                     // sh "sed -i 's/\"version\": \".*\"/\"version\": \"${new_version}\"/' package.json"
                     sh "ls"
                     sh "pwd"
