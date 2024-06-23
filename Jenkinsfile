@@ -85,14 +85,8 @@ pipeline {
 }
 
 def bumpVersion(tag) {
-    // Compile the regex pattern with case-insensitive flag
-    def pattern = java.util.regex.Pattern.compile(/[_-]?RC\d*/, java.util.regex.Pattern.CASE_INSENSITIVE)
-    
-    // Remove any "_RC", "-RC", "RC", etc. part regardless of case
-    def cleanedTag = tag.replaceAll(pattern, "")
-    
-    // Extract the version numbers (major, minor, patch)
-    def matcher = cleanedTag =~ /(\d+)\.(\d+)\.(\d+)$/
+    // Example: If tag is "Release-V1.1.25", extract the numeric parts and increment the version
+    def matcher = tag =~ /(\d+)\.(\d+)\.(\d+)$/
     if (!matcher) {
         return tag // Return the original tag if no numeric parts are found
     }
@@ -101,7 +95,7 @@ def bumpVersion(tag) {
     def minor = matcher[0][2].toInteger()
     def patch = matcher[0][3].toInteger()
     
-    // Increment the patch number
+    // Increment patch number
     patch += 1
     if (patch > 25) {
         patch = 0
@@ -114,9 +108,7 @@ def bumpVersion(tag) {
         major += 1
     }
     
-    // Construct the new version string
     def newVersion = "${major}.${minor}.${patch}"
-    def newTag = cleanedTag.replaceFirst(/(\d+)\.(\d+)\.(\d+)$/, newVersion)
-    
+    def newTag = tag.replaceFirst(/(\d+)\.(\d+)\.(\d+)$/, newVersion)
     return newTag
 }
