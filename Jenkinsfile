@@ -29,6 +29,7 @@ pipeline {
                         OLD_TAG = json.tagName ?: DEFAULT_VERSION
                         NEW_TAG = bumpVersion(OLD_TAG)
                     } catch (Exception e) {
+                        sendFailureNotification(env.RECIPIENT_EMAIL, env.BRANCH_NAME, env.ENV, env.APP_NAME,'Started')
                         echo "No Prior Releases Found, Creating Default Release"
                         NEW_TAG = DEFAULT_VERSION
                     } finally {
@@ -67,12 +68,9 @@ pipeline {
             steps {
                 script {
                     try {
-                        echo "New: ${NEW_TAG}"
                         if (NEW_TAG == 'Release-V1.0.0') {
-                            echo "If Case"
                             sh "gh release create ${NEW_TAG} --latest=true --generate-notes --target main"
                         } else {
-                            echo "Else Case"
                             sh "gh release create ${NEW_TAG} --target main --notes-start-tag ${OLD_TAG} --generate-notes"
                         }
                     } catch (Exception e) {
@@ -111,4 +109,28 @@ def bumpVersion(tag) {
     def newVersion = "${major}.${minor}.${patch}"
     def newTag = tag.replaceFirst(/(\d+)\.(\d+)\.(\d+)$/, newVersion)
     return newTag
+}
+
+def sendEmailNotification(String recipientEmail, String branchName, String envName, String appName, String buildStatus) {
+    def buildUser = env.BUILD_USER ?: 'Unknown'
+    def buildURL = env.BUILD_URL ?: 'Unknown'
+    def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+    def commitHash = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+
+    def emailBody = """
+    The Deployment Pipeline has ${buildStatus} for the following:
+    - Branch Name: ${branchName}
+    - Environment Name: ${envName}
+    - Deployment Name: ${appName}
+    - Commit Hash: ${commitHash}
+    - Last Commit Message: ${commitMessage}
+    - Build Started By: ${buildUser}
+    - Build URL: ${buildURL}
+
+    Please check the logs for more information
+    """
+
+    emailext subject: "[${buildStatus}] Pipeline - ${envName} - ${appName}",
+               body: emailBody,
+               to: recipientEmail
 }
