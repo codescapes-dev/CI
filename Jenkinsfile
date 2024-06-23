@@ -20,18 +20,32 @@ pipeline {
             }
         }
 
+        stage('Fetch Latest Release Tag') {
+            steps {
+                script {
+                    try {
+                        def latestTagOutput = sh(script: 'gh release view --json tagName', returnStdout: true).trim()
+                        def json = readJSON text: latestTagOutput
+                        OLD_TAG = json.tagName ?: DEFAULT_VERSION
+                        NEW_TAG = bumpVersion(OLD_TAG)
+                    } catch (Exception e) {
+                        echo "No Prior Releases Found, Creating Default Release"
+                        NEW_TAG = DEFAULT_VERSION
+                    } finally {
+                        echo "Latest Release Tag Is: ${NEW_TAG}"
+                    }
+                }
+            }
+        }
+
         stage ('Package Update') {
             steps {
                 script {
-                    def new_version = "2.1.0"
-                    sh "sed -i 's/\"version\": \".*\"/\"version\": \"${new_version}\"/' package.json"
-                    sh "git config --replace-all user.email 'atharva@atharvaunde.dev'"
-                    sh "git config --replace-all user.name 'Git Action'"
+                    sh "sed -i 's/\"version\": \".*\"/\"version\": \"${NEW_TAG}\"/' package.json"
                     sh 'echo "Git configuration:"'
                     sh 'git config --list'
                     sh "git add package.json"
-                    sh "git commit -m 'Version Bump to ${new_version}'"
-                    sh 'git log -1 --pretty=format:"%an <%ae>"'
+                    sh "git commit -m 'Version Bump to ${NEW_TAG}'"
                     sh "git push origin development -u"
                 }
             }
@@ -47,24 +61,6 @@ pipeline {
                     sh "gh pr create --fill --base main"
                     sleep time: 5, unit: 'SECONDS'
                     sh "gh pr merge --merge --auto"
-                }
-            }
-        }
-
-        stage('Fetch Latest Release Tag') {
-            steps {
-                script {
-                    try {
-                        def latestTagOutput = sh(script: 'gh release view --json tagName', returnStdout: true).trim()
-                        def json = readJSON text: latestTagOutput
-                        OLD_TAG = json.tagName ?: DEFAULT_VERSION
-                        NEW_TAG = bumpVersion(OLD_TAG)
-                    } catch (Exception e) {
-                        echo "No Prior Releases Found, Creating Default Release"
-                        NEW_TAG = DEFAULT_VERSION
-                    } finally {
-                        echo "Latest Release Tag Is: ${NEW_TAG}"
-                    }
                 }
             }
         }

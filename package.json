@@ -1,6 +1,6 @@
 {
     "name": "saas-manage",
-    "version": "2.1.0",
+    "version": "Release-V1.0.6",
     "private": true,
     "scripts": {
       "serve": "vue-cli-service serve",
