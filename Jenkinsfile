@@ -38,16 +38,16 @@ pipeline {
             }
         }
 
-        stage ('Package Update') {
-            steps {
-                script {
-                    sh "sed -i 's/\"version\": \".*\"/\"version\": \"${NEW_TAG}\"/' package.json"
-                    sh "git add package.json"
-                    sh "git commit -m 'Version Bump to ${NEW_TAG}'"
-                    sh "git push origin development -u"
-                }
-            }
-        }
+        // stage ('Package Update') {
+        //     steps {
+        //         script {
+        //             sh "sed -i 's/\"version\": \".*\"/\"version\": \"${NEW_TAG}\"/' package.json"
+        //             sh "git add package.json"
+        //             sh "git commit -m 'Version Bump to ${NEW_TAG}'"
+        //             sh "git push origin development -u"
+        //         }
+        //     }
+        // }
 
         stage('Create PR') {
             steps {
