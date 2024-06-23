@@ -24,16 +24,12 @@ pipeline {
             steps {
                 script {
                     def new_version = "2.0.0"
-                    // sh "sed -i 's/\"version\": \".*\"/\"version\": \"${new_version}\"/' package.json"
-                    sh 'echo "Current directory:"'
-                    sh 'pwd'
-                    sh 'echo "List of files in the current directory:"'
-                    sh 'ls -al'
-                    sh 'echo "Checking the workspace directory:"'
-                    sh 'echo "$WORKSPACE"'
-                    sh 'ls -al $WORKSPACE'
+                    sh "sed -i 's/\"version\": \".*\"/\"version\": \"${new_version}\"/' package.json"
                     sh "git config user.email atharva@atharvaunde.dev"
                     sh "git config user.name Git Action"
+                    sh "git commit -m Version Bump"
+                    sh "git push origin development -u"
+
                 }
             }
         }
